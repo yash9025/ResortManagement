@@ -10,6 +10,7 @@ import Staff from "./pages/Staff"
 import Activities from "./pages/Activities"
 import Facilities from "./pages/Facilities"
 import "./index.css"
+import WalletManagement from "./pages/WalletManagement"
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -56,6 +57,7 @@ function App() {
                 <Route path="/staff" element={<Staff />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/facilities" element={<Facilities />} />
+                <Route path="/wallet" element={<WalletManagement />} />
               </Routes>
             </div>
           </main>

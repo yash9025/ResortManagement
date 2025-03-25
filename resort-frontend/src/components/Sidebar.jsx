@@ -8,6 +8,7 @@ import {
   SettingsIcon,
   LogOutIcon,
   BarChartIcon,
+  DollarIcon,
 } from "./Icons"
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -84,6 +85,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 >
                   <SwimmingPoolIcon className="mr-3 h-5 w-5" />
                   Facilities
+                </Link>
+              </li>
+              <li>
+              <Link
+                  to="/wallet"
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/wallet")}`}
+                >
+                  <DollarIcon className="mr-3 h-5 w-5" />
+                  Wallet
                 </Link>
               </li>
             </ul>
