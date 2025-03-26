@@ -37,6 +37,10 @@ const UserNavbar = () => {
                 <SwimmingPoolIcon className="mr-1 h-5 w-5" />
                 Facilities
               </Link>
+              <Link to="/food-services" className={`inline-flex items-center px-1 pt-1 ${isActive("/food-services")}`}>
+                <SwimmingPoolIcon className="mr-1 h-5 w-5" />
+                Food and Services
+              </Link>
               <Link to="/wallet" className={`inline-flex items-center px-1 pt-1 ${isActive("/wallet")}`}>
                 <DollarIcon className="mr-1 h-5 w-5" />
                 My Wallet
@@ -127,6 +131,16 @@ const UserNavbar = () => {
             Facilities
           </Link>
           <Link
+            to="/food-services"
+            className={`block pl-3 pr-4 py-2 border-l-4 ${
+              location.pathname === "/food-services"
+                ? "border-blue-500 text-blue-700 bg-blue-50"
+                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+            }`}
+          >
+            Food and Services
+          </Link>
+          <Link
             to="/wallet"
             className={`block pl-3 pr-4 py-2 border-l-4 ${
               location.pathname === "/wallet"
@@ -136,6 +150,7 @@ const UserNavbar = () => {
           >
             My Wallet
           </Link>
+          
           <Link
             to="/profile"
             className={`block pl-3 pr-4 py-2 border-l-4 ${

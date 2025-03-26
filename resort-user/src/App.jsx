@@ -4,6 +4,7 @@ import UserDashboard from "./pages/UserDashboard"
 import RoomBooking from "./pages/RoomBooking"
 import ActivityBooking from "./pages/ActivityBooking"
 import FacilityViewer from "./pages/FacilityViewer"
+import FoodAndServices from "./pages/FoodAndServices"
 import UserWallet from "./pages/UserWallet"
 import UserProfile from "./pages/UserProfile"
 import "./index.css"
@@ -19,6 +20,7 @@ function UserApp() {
             <Route path="/rooms" element={<RoomBooking />} />
             <Route path="/activities" element={<ActivityBooking />} />
             <Route path="/facilities" element={<FacilityViewer />} />
+            <Route path="/food-services" element={<FoodAndServices />} />
             <Route path="/wallet" element={<UserWallet />} />
             <Route path="/profile" element={<UserProfile />} />
           </Routes>

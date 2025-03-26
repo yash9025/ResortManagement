@@ -96,6 +96,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   Wallet
                 </Link>
               </li>
+              <li>
+              <Link
+                  to="/room-services"
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/room-services")}`}
+                >
+                  <DollarIcon className="mr-3 h-5 w-5" />
+                  Room Services
+                </Link>
+              </li>
+              <li>
+              <Link
+                  to="/food-orders"
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/food-orders")}`}
+                >
+                  <DollarIcon className="mr-3 h-5 w-5" />
+                  Food Orders
+                </Link>
+              </li>
             </ul>
           </nav>
 

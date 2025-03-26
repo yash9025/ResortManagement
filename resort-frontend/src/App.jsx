@@ -9,8 +9,10 @@ import Guests from "./pages/Guests"
 import Staff from "./pages/Staff"
 import Activities from "./pages/Activities"
 import Facilities from "./pages/Facilities"
-import "./index.css"
 import WalletManagement from "./pages/WalletManagement"
+import FoodOrderManagement from "./pages/FoodOrderManagement"
+import RoomServiceManagement from "./pages/RoomServiceManagement"
+import "./index.css"
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -38,8 +40,8 @@ function App() {
                 <div className="relative">
                   <button className="flex items-center text-gray-500 focus:outline-none">
                     <img
-                      className="h-8 w-8 rounded-full object-cover p-0.5"
-                      src="/admin.svg"
+                      className="h-8 w-8 rounded-full object-cover"
+                      src="https://via.placeholder.com/150"
                       alt="Admin"
                     />
                     <span className="ml-2 text-sm font-medium">Admin User</span>
@@ -58,6 +60,8 @@ function App() {
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/facilities" element={<Facilities />} />
                 <Route path="/wallet" element={<WalletManagement />} />
+                <Route path="/food-orders" element={<FoodOrderManagement />} />
+                <Route path="/room-services" element={<RoomServiceManagement />} />
               </Routes>
             </div>
           </main>
