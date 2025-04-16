@@ -9,7 +9,7 @@ const Facilities = () => {
     {
       id: 1,
       name: "Main Swimming Pool",
-      type: "Pool",
+      type: "Pool", //remove type
       status: "Operational",
       maintenance: false,
       details: {
@@ -17,7 +17,7 @@ const Facilities = () => {
         temperature: 82,
         chlorineLevel: "Normal",
         phLevel: 7.4,
-        lastCleaned: "2023-06-15",
+        lastCleaned: "2023-06-15", 
       },
     },
     {

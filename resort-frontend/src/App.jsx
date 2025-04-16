@@ -12,7 +12,9 @@ import Facilities from "./pages/Facilities"
 import WalletManagement from "./pages/WalletManagement"
 import FoodOrderManagement from "./pages/FoodOrderManagement"
 import RoomServiceManagement from "./pages/RoomServiceManagement"
+import ReservationManagement from "./pages/ReservationManagement"
 import "./index.css"
+import FacilityMap from "./pages/Map"
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -41,7 +43,7 @@ function App() {
                   <button className="flex items-center text-gray-500 focus:outline-none">
                     <img
                       className="h-8 w-8 rounded-full object-cover"
-                      src="https://via.placeholder.com/150"
+                      src="https://static.vecteezy.com/system/resources/previews/020/429/953/original/admin-icon-vector.jpg"
                       alt="Admin"
                     />
                     <span className="ml-2 text-sm font-medium">Admin User</span>
@@ -62,6 +64,8 @@ function App() {
                 <Route path="/wallet" element={<WalletManagement />} />
                 <Route path="/food-orders" element={<FoodOrderManagement />} />
                 <Route path="/room-services" element={<RoomServiceManagement />} />
+                <Route path="/reservations" element={<ReservationManagement />} />
+                <Route path="/map" element={<FacilityMap />} />
               </Routes>
             </div>
           </main>

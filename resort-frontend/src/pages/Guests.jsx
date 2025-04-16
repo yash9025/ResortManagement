@@ -1,76 +1,27 @@
-"use client"
-
-import { useState } from "react"
-import { PlusIcon, SearchIcon } from "../components/Icons"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "../components/Icons"
 import Modal from "../components/Modal"
 
 const Guests = () => {
-  const [guests, setGuests] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@example.com",
-      phone: "+1 (555) 123-4567",
-      checkIn: "2023-06-15",
-      checkOut: "2023-06-20",
-      room: "101 - Ocean View Suite",
-      status: "Active",
-      preferences: {
-        dietaryRestrictions: "None",
-        roomTemperature: "Cool",
-        specialRequests: "Extra pillows",
-      },
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah.j@example.com",
-      phone: "+1 (555) 987-6543",
-      checkIn: "2023-06-18",
-      checkOut: "2023-06-25",
-      room: "205 - Garden Villa",
-      status: "Upcoming",
-      preferences: {
-        dietaryRestrictions: "Vegetarian",
-        roomTemperature: "Warm",
-        specialRequests: "Late check-out",
-      },
-    },
-    {
-      id: 3,
-      name: "Michael Brown",
-      email: "michael.b@example.com",
-      phone: "+1 (555) 456-7890",
-      checkIn: "2023-05-25",
-      checkOut: "2023-05-30",
-      room: "302 - Presidential Suite",
-      status: "Completed",
-      preferences: {
-        dietaryRestrictions: "Gluten-free",
-        roomTemperature: "Normal",
-        specialRequests: "Airport transfer",
-      },
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      email: "emily.d@example.com",
-      phone: "+1 (555) 789-0123",
-      checkIn: "2023-06-10",
-      checkOut: "2023-06-17",
-      room: "118 - Beach Bungalow",
-      status: "Active",
-      preferences: {
-        dietaryRestrictions: "Dairy-free",
-        roomTemperature: "Cool",
-        specialRequests: "Spa appointment",
-      },
-    },
-  ])
-
+  const [guests, setGuests] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentGuest, setCurrentGuest] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
+
+  // Fetch guests data from the backend
+  useEffect(() => {
+    fetchGuests()
+  }, [])
+
+  const fetchGuests = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/guests")
+      setGuests(response.data)
+    } catch (error) {
+      console.error("Error fetching guests:", error)
+    }
+  }
 
   const openModal = (guest = null) => {
     setCurrentGuest(
@@ -78,42 +29,73 @@ const Guests = () => {
         name: "",
         email: "",
         phone: "",
-        checkIn: "",
-        checkOut: "",
-        room: "",
-        status: "Upcoming",
-        preferences: {
-          dietaryRestrictions: "",
-          roomTemperature: "",
-          specialRequests: "",
-        },
-      },
+        tier: "Bronze",
+        dietaryrestrictions: "",
+        preferredroomtemperature: "22",
+        specialrequest: "",
+      }
     )
     setIsModalOpen(true)
   }
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setCurrentGuest(null)
+    setIsModalOpen(false);  // Close the modal
+    setCurrentGuest({});    // Reset the guest data to an empty object, not null
+  };
+
+
+  // Add new guest function
+  const addGuest = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/guests", currentGuest);
+      console.log("Guest added:", response.data); // Verify the response
+      fetchGuests(); // Refresh the guest list after adding
+      closeModal();
+    } catch (error) {
+      console.error("Error adding guest:", error);
+      alert("Failed to add guest. Please try again.");
+    }
+  };
+
+
+  // Update existing guest function
+  const updateGuest = async () => {
+    try {
+      await axios.put(`http://localhost:5000/api/guests/${currentGuest.guest_id}`, currentGuest);
+      fetchGuests(); // Refresh the guest list after updating
+      closeModal();
+    } catch (error) {
+      console.error("Error updating guest:", error);
+    }
   }
 
+
   const handleSaveGuest = () => {
-    if (currentGuest.id) {
-      // Update existing guest
-      setGuests(guests.map((guest) => (guest.id === currentGuest.id ? currentGuest : guest)))
+    console.log("Saving guest:", currentGuest);  // Debugging step
+    if (currentGuest.guest_id) {
+      updateGuest();  // If guest already has a guest_id, update
     } else {
-      // Add new guest
-      setGuests([...guests, { ...currentGuest, id: Date.now() }])
+      addGuest();  // If no guest_id, add as a new guest
     }
-    closeModal()
+  };
+
+
+
+  const handleDeleteGuest = async (guest_id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/guests/${guest_id}`);
+      fetchGuests(); // Refresh the guest list after deleting
+    } catch (error) {
+      console.error("Error deleting guest:", error);
+    }
   }
+
 
   const filteredGuests = guests.filter(
     (guest) =>
       guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.room.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.status.toLowerCase().includes(searchTerm.toLowerCase()),
+      guest.status.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -147,18 +129,14 @@ const Guests = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Guest
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Check In
+                  Phone
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Check Out
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Tier
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Preferences
@@ -170,11 +148,12 @@ const Guests = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredGuests.map((guest) => (
-                <tr key={guest.id}>
+                <tr key={guest.id || guest.email}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
+  
                       <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-700">{guest.name.charAt(0)}</span>
+                        <span className="text-gray-700">{guest.guest_id}{guest.name.charAt(0)}</span>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{guest.name}</div>
@@ -182,29 +161,25 @@ const Guests = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guest.room}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guest.checkIn}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guest.checkOut}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        guest.status === "Active"
-                          ? "bg-green-100 text-green-800"
-                          : guest.status === "Upcoming"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {guest.status}
-                    </span>
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guest.phone}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{guest.tier}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>Diet: {guest.preferences.dietaryRestrictions}</div>
-                    <div>Temp: {guest.preferences.roomTemperature}</div>
+                    <div>Diet: {guest.dietaryrestrictions || "Not Provided"}</div>
+                    <div>Temp: {guest.preferredroomtemperature || "Not Provided"}</div>
+                    <div>Special: {guest.specialrequest || "Not Provided"}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900" onClick={() => openModal(guest)}>
-                      Edit
+                    <button
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      onClick={() => openModal(guest)}
+                    >
+                      <EditIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDeleteGuest(guest.guest_id)}
+                    >
+                      <TrashIcon className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
@@ -245,50 +220,18 @@ const Guests = () => {
               onChange={(e) => setCurrentGuest({ ...currentGuest, phone: e.target.value })}
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700">Room</label>
-            <input
-              type="text"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentGuest?.room || ""}
-              onChange={(e) => setCurrentGuest({ ...currentGuest, room: e.target.value })}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Check In</label>
-              <input
-                type="date"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={currentGuest?.checkIn || ""}
-                onChange={(e) => setCurrentGuest({ ...currentGuest, checkIn: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Check Out</label>
-              <input
-                type="date"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={currentGuest?.checkOut || ""}
-                onChange={(e) => setCurrentGuest({ ...currentGuest, checkOut: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <label className="block text-sm font-medium text-gray-700">Tier</label>
             <select
+              value={currentGuest?.tier || "Bronze"}
+              onChange={(e) => setCurrentGuest({ ...currentGuest, tier: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentGuest?.status || ""}
-              onChange={(e) => setCurrentGuest({ ...currentGuest, status: e.target.value })}
             >
-              <option value="Upcoming">Upcoming</option>
-              <option value="Active">Active</option>
-              <option value="Completed">Completed</option>
+              <option value="Bronze">Bronze</option>
+              <option value="Silver">Silver</option>
+              <option value="Gold">Gold</option>
             </select>
+
           </div>
 
           <div>
@@ -296,57 +239,35 @@ const Guests = () => {
             <input
               type="text"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentGuest?.preferences?.dietaryRestrictions || ""}
-              onChange={(e) =>
-                setCurrentGuest({
-                  ...currentGuest,
-                  preferences: {
-                    ...currentGuest.preferences,
-                    dietaryRestrictions: e.target.value,
-                  },
-                })
-              }
+              value={currentGuest?.dietaryrestrictions || ""}
+              onChange={(e) => setCurrentGuest({ ...currentGuest, dietaryrestrictions: e.target.value })}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Room Temperature Preference</label>
-            <select
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentGuest?.preferences?.roomTemperature || ""}
-              onChange={(e) =>
-                setCurrentGuest({
-                  ...currentGuest,
-                  preferences: {
-                    ...currentGuest.preferences,
-                    roomTemperature: e.target.value,
-                  },
-                })
-              }
-            >
-              <option value="">Select Preference</option>
-              <option value="Cool">Cool</option>
-              <option value="Normal">Normal</option>
-              <option value="Warm">Warm</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700">Preferred Room Temperature (°C)</label>
+            <input
+              type="range"
+              min="15"
+              max="30"
+              step="1"
+              value={currentGuest?.preferredroomtemperature || 22}
+              onChange={(e) => setCurrentGuest({ ...currentGuest, preferredroomtemperature: e.target.value })}
+              className="mt-1 block w-full"
+            />
+            <div className="mt-1 text-sm text-gray-500">
+              {currentGuest?.preferredroomtemperature || 22}°C
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Special Requests</label>
+            <label className="block text-sm font-medium text-gray-700">Special Request</label>
             <textarea
+              rows="4"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              rows="3"
-              value={currentGuest?.preferences?.specialRequests || ""}
-              onChange={(e) =>
-                setCurrentGuest({
-                  ...currentGuest,
-                  preferences: {
-                    ...currentGuest.preferences,
-                    specialRequests: e.target.value,
-                  },
-                })
-              }
-            ></textarea>
+              value={currentGuest?.specialrequest || ""}
+              onChange={(e) => setCurrentGuest({ ...currentGuest, specialrequest: e.target.value })}
+            />
           </div>
 
           <div className="flex justify-end mt-6">

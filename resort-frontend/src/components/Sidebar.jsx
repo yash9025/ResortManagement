@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-center h-16 border-b">
-            <span className="text-xl font-semibold text-blue-600">Sunset Resort</span>
+            <span className="text-xl font-semibold text-blue-600">CozyForest</span>
           </div>
 
           <nav className="flex-1 overflow-y-auto py-4">
@@ -40,6 +40,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <Link to="/" className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/")}`}>
                   <BarChartIcon className="mr-3 h-5 w-5" />
                   Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/map"
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/map")}`}
+                >
+                  <BedDoubleIcon className="mr-3 h-5 w-5" />
+                  Live Map
                 </Link>
               </li>
               <li>
@@ -67,6 +76,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 >
                   <UsersIcon className="mr-3 h-5 w-5" />
                   Staff
+                </Link>
+              </li>
+              <li>
+              <Link
+                  to="/reservations"
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive("/reservations")}`}
+                >
+                  <DollarIcon className="mr-3 h-5 w-5" />
+                  Reservations
                 </Link>
               </li>
               <li>
@@ -114,6 +132,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   Food Orders
                 </Link>
               </li>
+              
             </ul>
           </nav>
 

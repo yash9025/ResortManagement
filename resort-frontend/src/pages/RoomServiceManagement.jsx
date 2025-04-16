@@ -1,119 +1,101 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { SearchIcon } from "../components/Icons"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { SearchIcon } from "../components/Icons";
 
 const RoomServiceManagement = () => {
-  const [requests, setRequests] = useState([
-    {
-      id: 1,
-      room: "101",
-      guest: "John Smith",
-      service: "Room Cleaning",
-      status: "pending",
-      time: "2023-06-16 10:30",
-      notes: "Please clean after 10 AM",
-      assignedTo: "",
-    },
-    {
-      id: 2,
-      room: "205",
-      guest: "Sarah Johnson",
-      service: "Extra Towels",
-      status: "in-progress",
-      time: "2023-06-16 09:45",
-      notes: "Need 2 extra bath towels",
-      assignedTo: "Maria Garcia",
-    },
-    {
-      id: 3,
-      room: "302",
-      guest: "Michael Brown",
-      service: "Technical Support",
-      status: "completed",
-      time: "2023-06-16 08:15",
-      notes: "TV not working properly",
-      assignedTo: "Thomas Patel",
-    },
-    {
-      id: 4,
-      room: "118",
-      guest: "Emily Davis",
-      service: "Laundry Service",
-      status: "pending",
-      time: "2023-06-16 11:20",
-      notes: "Urgent - need clothes by 5 PM",
-      assignedTo: "",
-    },
-  ])
+  const [requests, setRequests] = useState([]);
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedRequest, setSelectedRequest] = useState(null)
+  useEffect(() => {
+    fetchRequests();
+    fetchStaffMembers();
+  }, []);
 
-  const staffMembers = [
-    { id: 1, name: "Maria Garcia", position: "Housekeeping" },
-    { id: 2, name: "Robert Chen", position: "Maintenance" },
-    { id: 3, name: "Sophia Patel", position: "Housekeeping" },
-    { id: 4, name: "Thomas Patel", position: "Maintenance" },
-    { id: 5, name: "James Wilson", position: "Concierge" },
-  ]
+  const fetchRequests = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/roomservices");
+      setRequests(response.data);
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+    }
+  };
+
+  const fetchStaffMembers = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/staff");
+      setStaffMembers(response.data);
+    } catch (error) {
+      console.error("Error fetching staff members:", error);
+    }
+  };
 
   const filteredRequests = requests
     .filter((request) => filterStatus === "all" || request.status === filterStatus)
     .filter(
       (request) =>
-        request.room.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.guest.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.service.toLowerCase().includes(searchTerm.toLowerCase()),
+        request.room_id.toString().includes(searchTerm) ||
+        request.guest_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.service.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       // Sort by time (most recent first) and pending requests first
-      if (a.status === "pending" && b.status !== "pending") return -1
-      if (a.status !== "pending" && b.status === "pending") return 1
-      return new Date(b.time) - new Date(a.time)
-    })
+      if (a.status === "pending" && b.status !== "pending") return -1;
+      if (a.status !== "pending" && b.status === "pending") return 1;
+      return new Date(b.request_time) - new Date(a.request_time);
+    });
 
-  const updateRequestStatus = (requestId, newStatus) => {
-    setRequests(requests.map((request) => (request.id === requestId ? { ...request, status: newStatus } : request)))
-
-    if (selectedRequest && selectedRequest.id === requestId) {
-      setSelectedRequest({ ...selectedRequest, status: newStatus })
+  const updateRequestStatus = async (requestId, newStatus) => {
+    try {
+      await axios.put(`http://localhost:5000/api/roomservices/${requestId}`, {
+        status: newStatus,
+        assigned_to_staff_id: selectedRequest?.assigned_to_staff_id || null,
+      });
+      setRequests(requests.map((request) => (request.service_id === requestId ? { ...request, status: newStatus } : request)));
+      if (selectedRequest && selectedRequest.service_id === requestId) {
+        setSelectedRequest({ ...selectedRequest, status: newStatus });
+      }
+    } catch (error) {
+      console.error("Error updating request status:", error);
     }
-  }
+  };
 
-  const assignStaffToRequest = (requestId, staffName) => {
+  const assignStaffToRequest = async (requestId, staffId) => {
+    await updateRequestStatus(requestId, "in-progress");
     setRequests(
       requests.map((request) =>
-        request.id === requestId
-          ? { ...request, assignedTo: staffName, status: staffName ? "in-progress" : request.status }
-          : request,
-      ),
-    )
-
-    if (selectedRequest && selectedRequest.id === requestId) {
+        request.service_id === requestId
+          ? { ...request, assigned_to_staff_id: staffId, status: "in-progress" }
+          : request
+      )
+    );
+    if (selectedRequest && selectedRequest.service_id === requestId) {
       setSelectedRequest({
         ...selectedRequest,
-        assignedTo: staffName,
-        status: staffName ? "in-progress" : selectedRequest.status,
-      })
+        assigned_to_staff_id: staffId,
+        status: "in-progress",
+      });
     }
-  }
+  };
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "in-progress":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "completed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   return (
     <div>
@@ -203,14 +185,14 @@ const RoomServiceManagement = () => {
                   ) : (
                     filteredRequests.map((request) => (
                       <tr
-                        key={request.id}
-                        className={`hover:bg-gray-50 cursor-pointer ${selectedRequest?.id === request.id ? "bg-blue-50" : ""}`}
+                        key={request.service_id}
+                        className={`hover:bg-gray-50 cursor-pointer ${selectedRequest?.service_id === request.service_id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedRequest(request)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">Room {request.room}</div>
-                          <div className="text-sm text-gray-500">{request.guest}</div>
-                          <div className="text-xs text-gray-500">{request.time}</div>
+                          <div className="text-sm font-medium text-gray-900">Room {request.room_id}</div>
+                          <div className="text-sm text-gray-500">{request.guest_id}</div>
+                          <div className="text-xs text-gray-500">{new Date(request.request_time).toLocaleString()}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{request.service}</div>
@@ -225,15 +207,15 @@ const RoomServiceManagement = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{request.assignedTo || "-"}</div>
+                          <div className="text-sm text-gray-900">{request.assigned_to_staff_id || "-"}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {request.status === "pending" && (
                             <button
                               className="text-blue-600 hover:text-blue-900 mr-2"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                updateRequestStatus(request.id, "in-progress")
+                                e.stopPropagation();
+                                updateRequestStatus(request.service_id, "in-progress");
                               }}
                             >
                               Accept
@@ -243,8 +225,8 @@ const RoomServiceManagement = () => {
                             <button
                               className="text-green-600 hover:text-green-900 mr-2"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                updateRequestStatus(request.id, "completed")
+                                e.stopPropagation();
+                                updateRequestStatus(request.service_id, "completed");
                               }}
                             >
                               Complete
@@ -254,8 +236,8 @@ const RoomServiceManagement = () => {
                             <button
                               className="text-red-600 hover:text-red-900"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                updateRequestStatus(request.id, "cancelled")
+                                e.stopPropagation();
+                                updateRequestStatus(request.service_id, "cancelled");
                               }}
                             >
                               Cancel
@@ -276,11 +258,11 @@ const RoomServiceManagement = () => {
             <div>
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Request #{selectedRequest.id}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Request #{selectedRequest.service_id}</h2>
                   <p className="text-sm text-gray-600">
-                    Room {selectedRequest.room} - {selectedRequest.guest}
+                    Room {selectedRequest.room_id} - {selectedRequest.guest_id}
                   </p>
-                  <p className="text-xs text-gray-500">{selectedRequest.time}</p>
+                  <p className="text-xs text-gray-500">{new Date(selectedRequest.request_time).toLocaleString()}</p>
                 </div>
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(selectedRequest.status)}`}
@@ -307,13 +289,13 @@ const RoomServiceManagement = () => {
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Assigned Staff:</h3>
                 <select
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedRequest.assignedTo}
-                  onChange={(e) => assignStaffToRequest(selectedRequest.id, e.target.value)}
+                  value={selectedRequest.assigned_to_staff_id || ""}
+                  onChange={(e) => assignStaffToRequest(selectedRequest.service_id, e.target.value)}
                   disabled={selectedRequest.status === "completed" || selectedRequest.status === "cancelled"}
                 >
                   <option value="">Not Assigned</option>
                   {staffMembers.map((staff) => (
-                    <option key={staff.id} value={staff.name}>
+                    <option key={staff.staff_id} value={staff.staff_id}>
                       {staff.name} ({staff.position})
                     </option>
                   ))}
@@ -326,7 +308,7 @@ const RoomServiceManagement = () => {
                   {selectedRequest.status !== "pending" && (
                     <button
                       className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-md text-sm font-medium"
-                      onClick={() => updateRequestStatus(selectedRequest.id, "pending")}
+                      onClick={() => updateRequestStatus(selectedRequest.service_id, "pending")}
                       disabled={selectedRequest.status === "completed" || selectedRequest.status === "cancelled"}
                     >
                       Pending
@@ -335,7 +317,7 @@ const RoomServiceManagement = () => {
                   {selectedRequest.status !== "in-progress" && (
                     <button
                       className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md text-sm font-medium"
-                      onClick={() => updateRequestStatus(selectedRequest.id, "in-progress")}
+                      onClick={() => updateRequestStatus(selectedRequest.service_id, "in-progress")}
                       disabled={selectedRequest.status === "completed" || selectedRequest.status === "cancelled"}
                     >
                       In Progress
@@ -344,7 +326,7 @@ const RoomServiceManagement = () => {
                   {selectedRequest.status !== "completed" && (
                     <button
                       className="px-3 py-1 bg-green-100 text-green-800 rounded-md text-sm font-medium"
-                      onClick={() => updateRequestStatus(selectedRequest.id, "completed")}
+                      onClick={() => updateRequestStatus(selectedRequest.service_id, "completed")}
                       disabled={selectedRequest.status === "cancelled"}
                     >
                       Completed
@@ -353,7 +335,7 @@ const RoomServiceManagement = () => {
                   {selectedRequest.status !== "cancelled" && (
                     <button
                       className="px-3 py-1 bg-red-100 text-red-800 rounded-md text-sm font-medium"
-                      onClick={() => updateRequestStatus(selectedRequest.id, "cancelled")}
+                      onClick={() => updateRequestStatus(selectedRequest.service_id, "cancelled")}
                       disabled={selectedRequest.status === "completed"}
                     >
                       Cancelled
@@ -368,8 +350,7 @@ const RoomServiceManagement = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RoomServiceManagement
-
+export default RoomServiceManagement;

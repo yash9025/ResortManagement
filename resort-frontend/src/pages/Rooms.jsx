@@ -1,156 +1,120 @@
-"use client"
+import axios from "axios";
+import { useState, useEffect } from "react";
+import { PlusIcon, EditIcon, SearchIcon, TrashIcon } from "../components/Icons";
+import Modal from "../components/Modal";
 
-import { useState } from "react"
-import { PlusIcon, EditIcon, SearchIcon } from "../components/Icons"
-import Modal from "../components/Modal"
-import Toggle from "../components/Toggle"
 
 const Rooms = () => {
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      number: "101",
-      type: "Ocean View Suite",
-      price: 450,
-      capacity: "2 Adults, 2 Children",
-      status: "Available",
-      maintenance: false,
-      amenities: ["King Bed", "Balcony", "Mini Bar", "Ocean View"],
-      ambiance: {
-        temperature: 72,
-        lighting: "Warm",
-        cleanliness: "Excellent",
-      },
-    },
-    {
-      id: 2,
-      number: "102",
-      type: "Garden Villa",
-      price: 550,
-      capacity: "4 Adults, 2 Children",
-      status: "Occupied",
-      maintenance: false,
-      amenities: ["2 Queen Beds", "Private Garden", "Jacuzzi", "Kitchenette"],
-      ambiance: {
-        temperature: 70,
-        lighting: "Natural",
-        cleanliness: "Excellent",
-      },
-    },
-    {
-      id: 3,
-      number: "103",
-      type: "Deluxe Room",
-      price: 350,
-      capacity: "2 Adults",
-      status: "Available",
-      maintenance: false,
-      amenities: ["Queen Bed", "Work Desk", "Mini Fridge"],
-      ambiance: {
-        temperature: 71,
-        lighting: "Bright",
-        cleanliness: "Good",
-      },
-    },
-    {
-      id: 4,
-      number: "104",
-      type: "Presidential Suite",
-      price: 950,
-      capacity: "4 Adults, 2 Children",
-      status: "Maintenance",
-      maintenance: true,
-      amenities: ["King Bed", "Living Room", "Dining Area", "Private Terrace", "Jacuzzi"],
-      ambiance: {
-        temperature: 73,
-        lighting: "Customizable",
-        cleanliness: "Under Renovation",
-      },
-    },
-  ])
+  const [rooms, setRooms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [currentRoom, setCurrentRoom] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/rooms");
+      setRooms(response.data);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    }
+  };
+
+  const addRoom = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/rooms", currentRoom);
+      fetchRooms();
+      closeModal();
+    } catch (error) {
+      console.error("Error adding room:", error);
+    }
+  };
+
+  const updateRoom = async () => {
+    try {
+      await axios.put(`http://localhost:5000/api/rooms/${currentRoom.room_id}`, currentRoom);
+      fetchRooms();
+      closeModal();
+    } catch (error) {
+      console.error("Error updating room:", error);
+    }
+  };
+
+  const deleteRoom = async (room_id) => {
+    if (!room_id) {
+      console.error("Error: room_id is undefined.");
+      return;
+    }
+    try {
+      await axios.delete(`http://localhost:5000/api/rooms/${room_id}`);
+      setRooms(rooms.filter((room) => room.room_id !== room_id));
+    } catch (error) {
+      console.error("Error deleting room:", error.response?.data || error);
+    }
+  };
+
+  const toggleRoomStatus = async (room) => {
+    try {
+      let newStatus;
+
+      // Cycle through statuses: Available → Occupied → Under Maintenance → Available
+      if (room.status === "Available") {
+        newStatus = "Occupied";
+      } else if (room.status === "Occupied") {
+        newStatus = "Under Maintenance";
+      } else {
+        newStatus = "Available";
+      }
+
+      await axios.put(`http://localhost:5000/api/rooms/${room.room_id}`, {
+        ...room,
+        status: newStatus,
+      });
+
+      fetchRooms(); // Refresh the list after update
+    } catch (error) {
+      console.error("❌ Error updating room status:", error.response?.data || error);
+    }
+  };
 
   const openModal = (room = null) => {
+    console.log("Opening Modal with room:", room);
     setCurrentRoom(
       room || {
         number: "",
         type: "",
-        price: 0,
+        price: "",
         capacity: "",
         status: "Available",
-        maintenance: false,
-        amenities: [],
-        ambiance: {
-          temperature: 72,
-          lighting: "Warm",
-          cleanliness: "Excellent",
-        },
-      },
-    )
-    setIsModalOpen(true)
-  }
+        temperature: "",
+        lighting: "",
+        cleanliness: ""
+      }
+    );
+    setIsModalOpen(true);
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setCurrentRoom(null)
-  }
+    setIsModalOpen(false);
+    setCurrentRoom(null);
+  };
 
   const handleSaveRoom = () => {
-    if (currentRoom.id) {
-      // Update existing room
-      setRooms(rooms.map((room) => (room.id === currentRoom.id ? currentRoom : room)))
+    if (currentRoom?.room_id) {
+      updateRoom();
     } else {
-      // Add new room
-      setRooms([...rooms, { ...currentRoom, id: Date.now() }])
+      addRoom();
     }
-    closeModal()
-  }
+  };
 
-  const toggleRoomAvailability = (id) => {
-    setRooms(
-      rooms.map((room) => {
-        if (room.id === id) {
-          const newStatus = room.status === "Available" ? "Unavailable" : "Available"
-          return { ...room, status: newStatus }
-        }
-        return room
-      }),
-    )
-  }
+  const filteredRooms = rooms.filter((room) =>
+    room?.number?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const toggleRoomMaintenance = (id) => {
-    setRooms(
-      rooms.map((room) => {
-        if (room.id === id) {
-          const newMaintenance = !room.maintenance
-          const newStatus = newMaintenance ? "Maintenance" : "Available"
-          return { ...room, maintenance: newMaintenance, status: newStatus }
-        }
-        return room
-      }),
-    )
-  }
 
-  const updateRoomPrice = (id, price) => {
-    setRooms(
-      rooms.map((room) => {
-        if (room.id === id) {
-          return { ...room, price }
-        }
-        return room
-      }),
-    )
-  }
-
-  const filteredRooms = rooms.filter(
-    (room) =>
-      room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.status.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
 
   return (
     <div>
@@ -183,227 +147,181 @@ const Rooms = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Capacity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Maintenance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ambiance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacity</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ambiance</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRooms.map((room) => (
-                <tr key={room.id}>
+              {filteredRooms.map((room, index) => (
+                <tr key={room.id || room._id || index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{room.number}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${room.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.capacity}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <span>${room.price}</span>
-                      <button
-                        className="ml-2 text-blue-600 hover:text-blue-800"
-                        onClick={() => {
-                          const newPrice = prompt("Enter new price:", room.price)
-                          if (newPrice && !isNaN(newPrice)) {
-                            updateRoomPrice(room.id, Number(newPrice))
-                          }
-                        }}
-                      >
-                        <EditIcon className="h-4 w-4" />
-                      </button>
+                    <div className="flex flex-col">
+                      <span><strong>Temp:</strong> {room.temperature}°C</span>
+                      <span><strong>Lighting:</strong> {room.lighting}</span>
+                      <span><strong>Clean:</strong> {room.cleanliness}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.capacity}</td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        room.status === "Available"
-                          ? "bg-green-100 text-green-800"
-                          : room.status === "Occupied"
-                            ? "bg-blue-100 text-blue-800"
-                            : room.status === "Maintenance"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${room.status === "Available"
+                        ? "bg-green-100 text-green-800"
+                        : room.status === "Occupied"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {room.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Toggle enabled={room.maintenance} onChange={() => toggleRoomMaintenance(room.id)} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>Temp: {room.ambiance.temperature}°F</div>
-                    <div>Light: {room.ambiance.lighting}</div>
-                    <div>Clean: {room.ambiance.cleanliness}</div>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => openModal(room)}>
-                      Edit
+                      <EditIcon className="h-4 w-4" />
                     </button>
+
                     <button
-                      className="text-indigo-600 hover:text-indigo-900"
-                      onClick={() => toggleRoomAvailability(room.id)}
+                      className={`px-2 py-1 rounded-md text-white ${room.status === "Available" ? "bg-green-500" :
+                        room.status === "Occupied" ? "bg-blue-500" :
+                          "bg-yellow-500"
+                        }`}
+                      onClick={() => toggleRoomStatus(room)}
                     >
-                      Toggle Availability
+                      {room.status === "Available" ? "Set Occupied" :
+                        room.status === "Occupied" ? "Set Maintenance" :
+                          "Set Available"}
+                    </button>
+
+                    <button className="text-red-600 hover:text-red-900" onClick={() => deleteRoom(room.room_id)}>
+                      <TrashIcon className="h-4 w-4" />
                     </button>
                   </td>
+
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={currentRoom?.id ? "Edit Room" : "Add New Room"}>
         <div className="grid grid-cols-1 gap-4">
+          {/* Room Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Room Number</label>
             <input
               type="text"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
               value={currentRoom?.number || ""}
               onChange={(e) => setCurrentRoom({ ...currentRoom, number: e.target.value })}
             />
           </div>
 
+          {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Room Type</label>
-            <select
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            <label className="block text-sm font-medium text-gray-700">Type</label>
+            <input
+              type="text"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
               value={currentRoom?.type || ""}
               onChange={(e) => setCurrentRoom({ ...currentRoom, type: e.target.value })}
-            >
-              <option value="">Select Type</option>
-              <option value="Ocean View Suite">Ocean View Suite</option>
-              <option value="Garden Villa">Garden Villa</option>
-              <option value="Deluxe Room">Deluxe Room</option>
-              <option value="Presidential Suite">Presidential Suite</option>
-            </select>
+            />
           </div>
 
+          {/* Price */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Price per Night</label>
+            <label className="block text-sm font-medium text-gray-700">Price</label>
             <input
               type="number"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
               value={currentRoom?.price || ""}
               onChange={(e) => setCurrentRoom({ ...currentRoom, price: Number(e.target.value) })}
             />
           </div>
 
+          {/* Capacity */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Capacity</label>
             <input
-              type="text"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              type="text"  // Change input type to "text"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
               value={currentRoom?.capacity || ""}
               onChange={(e) => setCurrentRoom({ ...currentRoom, capacity: e.target.value })}
             />
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700">Lighting</label>
+            <input
+              type="text"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
+              value={currentRoom?.lighting || ""}
+              onChange={(e) => setCurrentRoom({ ...currentRoom, lighting: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Cleanliness</label>
+            <input
+              type="text"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
+              value={currentRoom?.cleanliness || ""}
+              onChange={(e) => setCurrentRoom({ ...currentRoom, cleanliness: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Temperature</label>
+            <input
+              type="number"
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
+              value={currentRoom?.temperature || ""}
+              onChange={(e) => setCurrentRoom({ ...currentRoom, temperature: Number(e.target.value) })}
+            />
+          </div>
+
+
+          {/* Status */}
+          <div>
             <label className="block text-sm font-medium text-gray-700">Status</label>
             <select
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentRoom?.status || ""}
+              className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3"
+              value={currentRoom?.status || "Available"}
               onChange={(e) => setCurrentRoom({ ...currentRoom, status: e.target.value })}
             >
               <option value="Available">Available</option>
+              <option value="Under Maintenance">Under Maintenance</option>
               <option value="Occupied">Occupied</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Unavailable">Unavailable</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Room Temperature (°F)</label>
-            <input
-              type="number"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentRoom?.ambiance?.temperature || 72}
-              onChange={(e) =>
-                setCurrentRoom({
-                  ...currentRoom,
-                  ambiance: {
-                    ...currentRoom.ambiance,
-                    temperature: Number(e.target.value),
-                  },
-                })
-              }
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Lighting</label>
-            <select
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentRoom?.ambiance?.lighting || ""}
-              onChange={(e) =>
-                setCurrentRoom({
-                  ...currentRoom,
-                  ambiance: {
-                    ...currentRoom.ambiance,
-                    lighting: e.target.value,
-                  },
-                })
-              }
-            >
-              <option value="Warm">Warm</option>
-              <option value="Bright">Bright</option>
-              <option value="Natural">Natural</option>
-              <option value="Customizable">Customizable</option>
-            </select>
-          </div>
 
-          <div className="flex items-center mt-4">
-            <Toggle
-              enabled={currentRoom?.maintenance || false}
-              onChange={(value) =>
-                setCurrentRoom({
-                  ...currentRoom,
-                  maintenance: value,
-                  status: value ? "Maintenance" : currentRoom.status,
-                })
-              }
-              label="Under Maintenance"
-            />
-          </div>
 
+          {/* Buttons */}
           <div className="flex justify-end mt-6">
-            <button
-              type="button"
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3"
-              onClick={closeModal}
-            >
+            <button className="bg-gray-300 px-4 py-2 rounded-md" onClick={closeModal}>
               Cancel
             </button>
-            <button
-              type="button"
-              className="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              onClick={handleSaveRoom}
-            >
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-md ml-2" onClick={handleSaveRoom}>
               Save
             </button>
           </div>
         </div>
       </Modal>
+
     </div>
-  )
-}
+  );
+};
 
-export default Rooms
-
+export default Rooms;

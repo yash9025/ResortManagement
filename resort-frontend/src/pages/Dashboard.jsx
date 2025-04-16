@@ -56,9 +56,9 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Total Revenue" value="$245,890" icon={<DollarIcon className="h-6 w-6" />} color="green" />
-        <StatCard title="Total Guests" value="1,245" icon={<UsersIcon className="h-6 w-6" />} color="blue" />
-        <StatCard title="Available Rooms" value="24/50" icon={<BedDoubleIcon className="h-6 w-6" />} color="purple" />
-        <StatCard title="Active Bookings" value="78" icon={<CalendarIcon className="h-6 w-6" />} color="yellow" />
+        <StatCard title="Total Guests" value="250" icon={<UsersIcon className="h-6 w-6" />} color="blue" />
+        <StatCard title="Available Rooms" value="43/100" icon={<BedDoubleIcon className="h-6 w-6" />} color="purple" />
+        <StatCard title="Active Bookings" value="50" icon={<CalendarIcon className="h-6 w-6" />} color="yellow" />
       </div>
 
       {/* Charts Section */}

@@ -1,259 +1,129 @@
-"use client"
-
-import { useState } from "react"
-import { PlusIcon, EditIcon, SearchIcon } from "../components/Icons"
-import Modal from "../components/Modal"
+import { useState, useEffect } from "react";
+import { PlusIcon, EditIcon, SearchIcon, TrashIcon } from "../components/Icons";
+import Modal from "../components/Modal";
+import axios from "axios";
 
 const Activities = () => {
-  const [activities, setActivities] = useState([
-    {
-      id: 1,
-      name: "Scuba Diving",
-      type: "Water Sports",
-      price: 120,
-      duration: "3 hours",
-      capacity: 8,
-      status: "Available",
-      description: "Explore the vibrant coral reefs with our experienced instructors.",
-      equipment: "All equipment provided",
-      minAge: 12,
-    },
-    {
-      id: 2,
-      name: "Yoga Retreat",
-      type: "Wellness",
-      price: 45,
-      duration: "1.5 hours",
-      capacity: 15,
-      status: "Available",
-      description: "Rejuvenate your mind and body with our beachside yoga sessions.",
-      equipment: "Yoga mats provided",
-      minAge: 16,
-    },
-    {
-      id: 3,
-      name: "Jungle Trekking",
-      type: "Adventure",
-      price: 85,
-      duration: "4 hours",
-      capacity: 12,
-      status: "Unavailable",
-      description: "Explore the lush tropical jungle with our expert guides.",
-      equipment: "Hiking boots recommended",
-      minAge: 10,
-    },
-    {
-      id: 4,
-      name: "Sunset Sailing",
-      type: "Water Sports",
-      price: 95,
-      duration: "2.5 hours",
-      capacity: 20,
-      status: "Available",
-      description: "Enjoy the breathtaking sunset views from our luxury catamaran.",
-      equipment: "Life jackets provided",
-      minAge: 5,
-    },
-    {
-      id: 5,
-      name: "Beach Bonfire & BBQ",
-      type: "Leisure",
-      price: 60,
-      duration: "3 hours",
-      capacity: 25,
-      status: "Available",
-      description: "Relax under the stars with live music, delicious BBQ, and a cozy bonfire.",
-      equipment: "Seating and BBQ equipment provided",
-      minAge: 0,
-    },
-    {
-      id: 6,
-      name: "Kayaking Adventure",
-      type: "Water Sports",
-      price: 50,
-      duration: "2 hours",
-      capacity: 10,
-      status: "Available",
-      description: "Paddle through scenic routes and discover hidden lagoons.",
-      equipment: "Kayaks and safety gear provided",
-      minAge: 8,
-    },
-    {
-      id: 7,
-      name: "Cooking Class with Local Chefs",
-      type: "Culinary",
-      price: 70,
-      duration: "2.5 hours",
-      capacity: 12,
-      status: "Available",
-      description: "Learn how to prepare authentic local dishes with professional chefs.",
-      equipment: "All ingredients and utensils provided",
-      minAge: 12,
-    },
-    {
-      id: 8,
-      name: "Stargazing Night",
-      type: "Leisure",
-      price: 40,
-      duration: "1.5 hours",
-      capacity: 30,
-      status: "Available",
-      description: "Observe the night sky through high-powered telescopes with an expert guide.",
-      equipment: "Telescopes and star charts provided",
-      minAge: 5,
-    },
-    {
-      id: 9,
-      name: "ATV Off-Road Experience",
-      type: "Adventure",
-      price: 100,
-      duration: "2 hours",
-      capacity: 6,
-      status: "Available",
-      description: "Ride through rugged trails and explore the wilderness on an ATV.",
-      equipment: "Helmets and safety gear provided",
-      minAge: 16,
-    },
-    {
-      id: 10,
-      name: "Zip Lining",
-      type: "Adventure",
-      price: 75,
-      duration: "1.5 hours",
-      capacity: 10,
-      status: "Available",
-      description: "Experience the thrill of soaring through the treetops on high-speed zip lines.",
-      equipment: "Safety harnesses provided",
-      minAge: 12,
-    },
-    {
-      id: 11,
-      name: "Deep Sea Fishing",
-      type: "Water Sports",
-      price: 110,
-      duration: "4 hours",
-      capacity: 8,
-      status: "Available",
-      description: "Embark on a deep-sea fishing trip with expert guides and top-quality gear.",
-      equipment: "Fishing rods and bait provided",
-      minAge: 10,
-    },
-    {
-      id: 12,
-      name: "Hot Air Balloon Ride",
-      type: "Aerial Adventure",
-      price: 250,
-      duration: "1 hour",
-      capacity: 6,
-      status: "Available",
-      description: "Enjoy breathtaking aerial views from a hot air balloon ride.",
-      equipment: "Safety briefing and flight certificate provided",
-      minAge: 10,
-    },
-    {
-      id: 13,
-      name: "Rock Climbing",
-      type: "Adventure",
-      price: 80,
-      duration: "3 hours",
-      capacity: 6,
-      status: "Available",
-      description: "Scale natural rock formations with expert guidance and safety gear.",
-      equipment: "Helmets, harnesses, and climbing shoes provided",
-      minAge: 14,
-    },
-    {
-      id: 14,
-      name: "Cave Exploration",
-      type: "Adventure",
-      price: 95,
-      duration: "3.5 hours",
-      capacity: 10,
-      status: "Available",
-      description: "Discover hidden caves and underground formations with experienced guides.",
-      equipment: "Helmets and flashlights provided",
-      minAge: 10,
-    },
-    {
-      id: 15,
-      name: "Archery Lessons",
-      type: "Sports",
-      price: 50,
-      duration: "2 hours",
-      capacity: 12,
-      status: "Available",
-      description: "Learn the art of archery with professional instructors in a scenic setting.",
-      equipment: "Bows, arrows, and safety gear provided",
-      minAge: 8,
-    },
-  ])
+  const [activities, setActivities] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentActivity, setCurrentActivity] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [currentActivity, setCurrentActivity] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  // Default structure for a new activity
+  const defaultActivity = {
+    name: "",
+    type: "",
+    price: 0,
+    duration: "",
+    capacity: 0,
+    status: "Available",
+    description: "",
+    equipment: "",
+    min_age: 0,
+    start_time: "",
+    end_time: "",
+  };
+
+  useEffect(() => {
+    fetchActivities();
+  }, []);
+
+  const fetchActivities = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/activities");
+      setActivities(response.data);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
 
   const openModal = (activity = null) => {
-    setCurrentActivity(
-      activity || {
-        name: "",
-        type: "",
-        price: 0,
-        duration: "",
-        capacity: 0,
-        status: "Available",
-        description: "",
-        equipment: "",
-        minAge: 0,
-      },
-    )
-    setIsModalOpen(true)
-  }
+    setCurrentActivity(activity || defaultActivity);
+    setIsModalOpen(true);
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setCurrentActivity(null)
-  }
+    setIsModalOpen(false);
+    setCurrentActivity(null);
+  };
+
+  const handleAddActivity = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/activities", currentActivity);
+      fetchActivities();
+      closeModal();
+    } catch (error) {
+      console.error("Error adding activity:", error);
+    }
+  };
+
+  const handleUpdateActivity = async () => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/activities/${currentActivity.activity_id}`,
+        currentActivity
+      );
+      fetchActivities();
+      closeModal();
+    } catch (error) {
+      console.error("Error updating activity:", error);
+    }
+  };
 
   const handleSaveActivity = () => {
-    if (currentActivity.id) {
-      // Update existing activity
-      setActivities(activities.map((activity) => (activity.id === currentActivity.id ? currentActivity : activity)))
+    if (currentActivity.activity_id) {
+      handleUpdateActivity();
     } else {
-      // Add new activity
-      setActivities([...activities, { ...currentActivity, id: Date.now() }])
+      handleAddActivity();
     }
-    closeModal()
-  }
+  };
 
-  const toggleActivityStatus = (id) => {
-    setActivities(
-      activities.map((activity) => {
-        if (activity.id === id) {
-          const newStatus = activity.status === "Available" ? "Unavailable" : "Available"
-          return { ...activity, status: newStatus }
-        }
-        return activity
-      }),
-    )
-  }
+  const toggleActivityStatus = async (activity_id) => {
+    const activityToUpdate = activities.find((a) => a.activity_id === activity_id);
+    if (!activityToUpdate) return;
 
-  const updateActivityPrice = (id, price) => {
-    setActivities(
-      activities.map((activity) => {
-        if (activity.id === id) {
-          return { ...activity, price }
-        }
-        return activity
-      }),
-    )
-  }
+    const newStatus = activityToUpdate.status === "Available" ? "Unavailable" : "Available";
+
+    const updatedActivities = activities.map((a) =>
+      a.activity_id === activity_id ? { ...a, status: newStatus } : a
+    );
+    setActivities(updatedActivities);
+
+    try {
+      await axios.put(`http://localhost:5000/api/activities/${activity_id}`, {
+        ...activityToUpdate,
+        status: newStatus,
+      });
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      setActivities(activities); // Revert if failed
+    }
+  };
+
+  const deleteActivity = async (activity_id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/activities/${activity_id}`);
+      fetchActivities();
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+    }
+  };
 
   const filteredActivities = activities.filter(
     (activity) =>
       activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       activity.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      activity.status.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      activity.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    const [hour, minute] = timeStr.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hour), parseInt(minute));
+    return date.toLocaleTimeString([], { hour: "numeric", hour12: true });
+  };
+
 
   return (
     <div>
@@ -326,27 +196,41 @@ const Activities = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Min Age:</span>
-                  <span className="font-medium">{activity.minAge} years</span>
+                  <span className="font-medium">{activity.min_age} </span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Schedule:</span>
+                  <span className="font-medium">
+                    {formatTime(activity.start_time)} - {formatTime(activity.end_time)}
+                  </span>
+                </div>
+
+
               </div>
 
               <p className="mt-4 text-sm text-gray-600">{activity.description}</p>
 
               <div className="mt-6 flex justify-between">
                 <button
-                  className="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-50"
+                  className="bg-blue-500 border border-gray-300 text-white px-3 py-1 rounded-md hover:bg-gray-50"
                   onClick={() => openModal(activity)}
                 >
                   Edit Details
                 </button>
                 <button
                   className={`px-3 py-1 rounded-md ${activity.status === "Available"
-                      ? "bg-red-100 text-red-800 hover:bg-red-200"
-                      : "bg-green-100 text-green-800 hover:bg-green-200"
+                    ? "bg-red-100 text-red-800 hover:bg-red-200"
+                    : "bg-green-100 text-green-800 hover:bg-green-200"
                     }`}
-                  onClick={() => toggleActivityStatus(activity.id)}
+                  onClick={() => toggleActivityStatus(activity.activity_id)}
                 >
                   {activity.status === "Available" ? "Mark Unavailable" : "Mark Available"}
+                </button>
+                <button
+                  className="bg-red-500 border border-gray-300 text-white px-3 py-1 rounded-md hover:bg-gray-50"
+                  onClick={() => deleteActivity(activity.activity_id)}
+                >
+                  <TrashIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -372,12 +256,14 @@ const Activities = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Activity Type</label>
-            <select
+            <input
+              type="text"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               value={currentActivity?.type || ""}
               onChange={(e) => setCurrentActivity({ ...currentActivity, type: e.target.value })}
             />
           </div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Price</label>
@@ -446,10 +332,35 @@ const Activities = () => {
             <input
               type="number"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={currentActivity?.minAge || ""}
-              onChange={(e) => setCurrentActivity({ ...currentActivity, minAge: Number(e.target.value) })}
+              value={currentActivity?.min_age || ""}
+              onChange={(e) => setCurrentActivity({ ...currentActivity, min_age: Number(e.target.value) })}
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Start Time</label>
+            <input
+              type="time"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              value={currentActivity?.start_time || ""}
+              onChange={(e) =>
+                setCurrentActivity({ ...currentActivity, start_time: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700">End Time</label>
+            <input
+              type="time"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              value={currentActivity?.end_time || ""}
+              onChange={(e) =>
+                setCurrentActivity({ ...currentActivity, end_time: e.target.value })
+              }
+            />
+          </div>
+
 
           <div className="flex justify-end mt-6">
             <button
