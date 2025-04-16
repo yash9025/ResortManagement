@@ -1,28 +1,31 @@
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "../components/Icons"
-import Modal from "../components/Modal"
-import Toggle from "../components/Toggle"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "../components/Icons";
+import Modal from "../components/Modal";
+import Toggle from "../components/Toggle";
+
+// Get backend API base URL from the environment variable
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
 const WalletManagement = () => {
-  const [offers, setOffers] = useState([])
-  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false)
-  const [currentOffer, setCurrentOffer] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [offers, setOffers] = useState([]);
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [currentOffer, setCurrentOffer] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch offers on component mount
   useEffect(() => {
-    fetchOffers()
-  }, [])
+    fetchOffers();
+  }, []);
 
   const fetchOffers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/wallet/offers")
-      setOffers(response.data)
+      const response = await axios.get(`${API_BASE_URL}/api/wallet/offers`);
+      setOffers(response.data);
     } catch (error) {
-      console.error("Error fetching offers:", error)
+      console.error("Error fetching offers:", error);
     }
-  }
+  };
 
   const openOfferModal = (offer = null) => {
     setCurrentOffer(
@@ -36,79 +39,77 @@ const WalletManagement = () => {
         max_discount: null,
         applicable_rooms: "",
       }
-    )
-    setIsOfferModalOpen(true)
-  }
+    );
+    setIsOfferModalOpen(true);
+  };
 
   const closeOfferModal = () => {
-    setIsOfferModalOpen(false)
-    setCurrentOffer(null)
-  }
+    setIsOfferModalOpen(false);
+    setCurrentOffer(null);
+  };
 
   // Function to handle saving a new offer or updating an existing offer
   const handleSaveOffer = async () => {
     if (currentOffer.offer_id) {
-      updateOffer(currentOffer.offer_id, currentOffer) // Update existing offer
+      updateOffer(currentOffer.offer_id, currentOffer); // Update existing offer
     } else {
-      addOffer(currentOffer) // Add new offer
+      addOffer(currentOffer); // Add new offer
     }
-    closeOfferModal()
-  }
+    closeOfferModal();
+  };
 
   // Function to add a new offer
   const addOffer = async (offer) => {
     try {
       console.log("Adding offer:", offer); // Log the offer data
-      await axios.post("http://localhost:5000/api/wallet/offers", offer)
-      fetchOffers() // Re-fetch offers after adding
+      await axios.post(`${API_BASE_URL}/api/wallet/offers`, offer);
+      fetchOffers(); // Re-fetch offers after adding
     } catch (error) {
       console.error("Error adding offer:", error.response || error); // Log more detailed error
     }
-  }
-
+  };
 
   // Function to update an existing offer
   const updateOffer = async (offer_id, offer) => {
     try {
-      await axios.put(`http://localhost:5000/api/wallet/offers/${offer_id}`, offer)
-      fetchOffers() // Re-fetch offers after update
+      await axios.put(`${API_BASE_URL}/api/wallet/offers/${offer_id}`, offer);
+      fetchOffers(); // Re-fetch offers after update
     } catch (error) {
-      console.error("Error updating offer:", error)
+      console.error("Error updating offer:", error);
     }
-  }
+  };
 
   // Function to toggle the status of an offer
   const toggleOfferStatus = async (offer_id) => {
-    const updatedOffer = offers.find((offer) => offer.offer_id === offer_id)
-    const updatedStatus = !updatedOffer.is_active
+    const updatedOffer = offers.find((offer) => offer.offer_id === offer_id);
+    const updatedStatus = !updatedOffer.is_active;
 
     try {
-      await axios.put(`http://localhost:5000/api/wallet/offers/${offer_id}`, { ...updatedOffer, is_active: updatedStatus })
-      fetchOffers() // Re-fetch offers after status update
+      await axios.put(`${API_BASE_URL}/api/wallet/offers/${offer_id}`, { ...updatedOffer, is_active: updatedStatus });
+      fetchOffers(); // Re-fetch offers after status update
     } catch (error) {
-      console.error("Error updating offer status:", error)
+      console.error("Error updating offer status:", error);
     }
-  }
+  };
 
   // Function to delete an offer
   const deleteOffer = async (offer_id) => {
     if (window.confirm("Are you sure you want to delete this offer?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/wallet/offers/${offer_id}`)
-        fetchOffers() // Re-fetch offers after delete
+        await axios.delete(`${API_BASE_URL}/api/wallet/offers/${offer_id}`);
+        fetchOffers(); // Re-fetch offers after delete
       } catch (error) {
-        console.error("Error deleting offer:", error)
+        console.error("Error deleting offer:", error);
       }
     }
-  }
+  };
 
   const filteredOffers = offers.filter(
     (offer) =>
       offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       offer.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       offer.type.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
+  );
 
 
   return (

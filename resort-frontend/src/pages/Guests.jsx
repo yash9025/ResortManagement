@@ -1,27 +1,30 @@
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "../components/Icons"
-import Modal from "../components/Modal"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { PlusIcon, SearchIcon, EditIcon, TrashIcon } from "../components/Icons";
+import Modal from "../components/Modal";
+
+// Get backend API base URL from the environment variable
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
 const Guests = () => {
-  const [guests, setGuests] = useState([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [currentGuest, setCurrentGuest] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [guests, setGuests] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentGuest, setCurrentGuest] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch guests data from the backend
   useEffect(() => {
-    fetchGuests()
-  }, [])
+    fetchGuests();
+  }, []);
 
   const fetchGuests = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/guests")
-      setGuests(response.data)
+      const response = await axios.get(`${API_BASE_URL}/api/guests`);
+      setGuests(response.data);
     } catch (error) {
-      console.error("Error fetching guests:", error)
+      console.error("Error fetching guests:", error);
     }
-  }
+  };
 
   const openModal = (guest = null) => {
     setCurrentGuest(
@@ -34,20 +37,19 @@ const Guests = () => {
         preferredroomtemperature: "22",
         specialrequest: "",
       }
-    )
-    setIsModalOpen(true)
-  }
+    );
+    setIsModalOpen(true);
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);  // Close the modal
     setCurrentGuest({});    // Reset the guest data to an empty object, not null
   };
 
-
   // Add new guest function
   const addGuest = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/guests", currentGuest);
+      const response = await axios.post(`${API_BASE_URL}/api/guests`, currentGuest);
       console.log("Guest added:", response.data); // Verify the response
       fetchGuests(); // Refresh the guest list after adding
       closeModal();
@@ -57,18 +59,19 @@ const Guests = () => {
     }
   };
 
-
   // Update existing guest function
   const updateGuest = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/guests/${currentGuest.guest_id}`, currentGuest);
+      await axios.put(
+        `${API_BASE_URL}/api/guests/${currentGuest.guest_id}`,
+        currentGuest
+      );
       fetchGuests(); // Refresh the guest list after updating
       closeModal();
     } catch (error) {
       console.error("Error updating guest:", error);
     }
-  }
-
+  };
 
   const handleSaveGuest = () => {
     console.log("Saving guest:", currentGuest);  // Debugging step
@@ -79,24 +82,21 @@ const Guests = () => {
     }
   };
 
-
-
   const handleDeleteGuest = async (guest_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/guests/${guest_id}`);
+      await axios.delete(`${API_BASE_URL}/api/guests/${guest_id}`);
       fetchGuests(); // Refresh the guest list after deleting
     } catch (error) {
       console.error("Error deleting guest:", error);
     }
-  }
-
+  };
 
   const filteredGuests = guests.filter(
     (guest) =>
       guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       guest.status.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   return (
     <div>

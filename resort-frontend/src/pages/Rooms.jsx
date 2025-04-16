@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { PlusIcon, EditIcon, SearchIcon, TrashIcon } from "../components/Icons";
 import Modal from "../components/Modal";
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
 const Rooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -16,7 +17,7 @@ const Rooms = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/rooms");
+      const response = await axios.get(`${API_BASE_URL}/api/rooms`);
       setRooms(response.data);
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -25,7 +26,7 @@ const Rooms = () => {
 
   const addRoom = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/rooms", currentRoom);
+      await axios.post(`${API_BASE_URL}/api/rooms`, currentRoom);
       fetchRooms();
       closeModal();
     } catch (error) {
@@ -35,7 +36,7 @@ const Rooms = () => {
 
   const updateRoom = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/rooms/${currentRoom.room_id}`, currentRoom);
+      await axios.put(`${API_BASE_URL}/api/rooms/${currentRoom.room_id}`, currentRoom);
       fetchRooms();
       closeModal();
     } catch (error) {
@@ -49,7 +50,7 @@ const Rooms = () => {
       return;
     }
     try {
-      await axios.delete(`http://localhost:5000/api/rooms/${room_id}`);
+      await axios.delete(`${API_BASE_URL}/api/rooms/${room_id}`);
       setRooms(rooms.filter((room) => room.room_id !== room_id));
     } catch (error) {
       console.error("Error deleting room:", error.response?.data || error);
@@ -60,7 +61,6 @@ const Rooms = () => {
     try {
       let newStatus;
 
-      // Cycle through statuses: Available → Occupied → Under Maintenance → Available
       if (room.status === "Available") {
         newStatus = "Occupied";
       } else if (room.status === "Occupied") {
@@ -69,12 +69,12 @@ const Rooms = () => {
         newStatus = "Available";
       }
 
-      await axios.put(`http://localhost:5000/api/rooms/${room.room_id}`, {
+      await axios.put(`${API_BASE_URL}/api/rooms/${room.room_id}`, {
         ...room,
         status: newStatus,
       });
 
-      fetchRooms(); // Refresh the list after update
+      fetchRooms();
     } catch (error) {
       console.error("❌ Error updating room status:", error.response?.data || error);
     }
@@ -113,7 +113,6 @@ const Rooms = () => {
   const filteredRooms = rooms.filter((room) =>
     room?.number?.toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
-
 
 
   return (

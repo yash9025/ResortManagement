@@ -3,6 +3,8 @@ import { PlusIcon, EditIcon, SearchIcon, TrashIcon } from "../components/Icons";
 import Modal from "../components/Modal";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
+
 const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +32,7 @@ const Activities = () => {
 
   const fetchActivities = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/activities");
+      const response = await axios.get(`${API_BASE_URL}/api/activities`);
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -49,7 +51,7 @@ const Activities = () => {
 
   const handleAddActivity = async () => {
     try {
-      await axios.post("http://localhost:5000/api/activities", currentActivity);
+      await axios.post(`${API_BASE_URL}/api/activities`, currentActivity);
       fetchActivities();
       closeModal();
     } catch (error) {
@@ -60,7 +62,7 @@ const Activities = () => {
   const handleUpdateActivity = async () => {
     try {
       await axios.put(
-        `http://localhost:5000/api/activities/${currentActivity.activity_id}`,
+        `${API_BASE_URL}/api/activities/${currentActivity.activity_id}`,
         currentActivity
       );
       fetchActivities();
@@ -90,7 +92,7 @@ const Activities = () => {
     setActivities(updatedActivities);
 
     try {
-      await axios.put(`http://localhost:5000/api/activities/${activity_id}`, {
+      await axios.put(`${API_BASE_URL}/api/activities/${activity_id}`, {
         ...activityToUpdate,
         status: newStatus,
       });
@@ -102,7 +104,7 @@ const Activities = () => {
 
   const deleteActivity = async (activity_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/activities/${activity_id}`);
+      await axios.delete(`${API_BASE_URL}/api/activities/${activity_id}`);
       fetchActivities();
     } catch (error) {
       console.error("Error deleting activity:", error);

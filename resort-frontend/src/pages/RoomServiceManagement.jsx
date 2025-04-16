@@ -1,8 +1,9 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { SearchIcon } from "../components/Icons";
+
+// Get backend API base URL from the environment variable
+const backendUrl = import.meta.env.VITE_BACKEND_URI;
 
 const RoomServiceManagement = () => {
   const [requests, setRequests] = useState([]);
@@ -18,7 +19,7 @@ const RoomServiceManagement = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/roomservices");
+      const response = await axios.get(`${backendUrl}/api/roomservices`);
       setRequests(response.data);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -27,7 +28,7 @@ const RoomServiceManagement = () => {
 
   const fetchStaffMembers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/staff");
+      const response = await axios.get(`${backendUrl}/api/staff`);
       setStaffMembers(response.data);
     } catch (error) {
       console.error("Error fetching staff members:", error);
@@ -51,7 +52,7 @@ const RoomServiceManagement = () => {
 
   const updateRequestStatus = async (requestId, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/roomservices/${requestId}`, {
+      await axios.put(`${backendUrl}/api/roomservices/${requestId}`, {
         status: newStatus,
         assigned_to_staff_id: selectedRequest?.assigned_to_staff_id || null,
       });
@@ -97,6 +98,7 @@ const RoomServiceManagement = () => {
     }
   };
 
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Room Service Management</h1>
@@ -116,33 +118,29 @@ const RoomServiceManagement = () => {
 
           <div className="flex space-x-2">
             <button
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                filterStatus === "all" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${filterStatus === "all" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setFilterStatus("all")}
             >
               All
             </button>
             <button
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                filterStatus === "pending" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${filterStatus === "pending" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setFilterStatus("pending")}
             >
               Pending
             </button>
             <button
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                filterStatus === "in-progress" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${filterStatus === "in-progress" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setFilterStatus("in-progress")}
             >
               In Progress
             </button>
             <button
-              className={`px-3 py-1 rounded-md text-sm font-medium ${
-                filterStatus === "completed" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
-              }`}
+              className={`px-3 py-1 rounded-md text-sm font-medium ${filterStatus === "completed" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+                }`}
               onClick={() => setFilterStatus("completed")}
             >
               Completed

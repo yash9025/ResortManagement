@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import AddReservationForm from "../components/AddReservationForm";
 
+// Get backend API base URL from the environment variable
 const backendUrl = import.meta.env.VITE_BACKEND_URI;
 
 const ReservationManagement = () => {
@@ -53,7 +54,6 @@ const ReservationManagement = () => {
       alert("Failed to create reservation. Please try again.");
     }
   };
-
 
   const updateReservationStatus = async (reservationId, newStatus) => {
     try {

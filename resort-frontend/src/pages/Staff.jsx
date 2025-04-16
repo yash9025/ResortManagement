@@ -3,6 +3,8 @@ import axios from "axios";
 import Modal from "../components/Modal";
 import { PlusIcon, EditIcon, TrashIcon, SearchIcon } from "../components/Icons";
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
+
 const Staff = () => {
   const [staff, setStaff] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +17,7 @@ const Staff = () => {
 
   const fetchStaff = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/staff");
+      const response = await axios.get(`${API_BASE_URL}/api/staff`);
       setStaff(response.data);
     } catch (error) {
       console.error("Error fetching staff:", error);
@@ -58,19 +60,18 @@ const Staff = () => {
         joined: formatDateForBackend(currentStaff.joined),
       };
       console.log("Formatted Staff:", formattedStaff); // <--- Add this
-      await axios.post("http://localhost:5000/api/staff", formattedStaff);
+      await axios.post(`${API_BASE_URL}/api/staff`, formattedStaff);
       fetchStaff();
       closeModal();
     } catch (error) {
       console.error("Error adding staff:", error);
     }
   };
-  
 
   const updateStaff = async () => {
     try {
       const formattedStaff = { ...currentStaff, joined: formatDateForBackend(currentStaff.joined) };
-      await axios.put(`http://localhost:5000/api/staff/${currentStaff.staff_id}`, formattedStaff);
+      await axios.put(`${API_BASE_URL}/api/staff/${currentStaff.staff_id}`, formattedStaff);
       fetchStaff();
       closeModal();
     } catch (error) {
@@ -80,7 +81,7 @@ const Staff = () => {
 
   const deleteStaff = async (staff_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/staff/${staff_id}`);
+      await axios.delete(`${API_BASE_URL}/api/staff/${staff_id}`);
       setStaff(staff.filter((s) => s.staff_id !== staff_id));
     } catch (error) {
       console.error("Error deleting staff:", error);
@@ -102,6 +103,7 @@ const Staff = () => {
   const filteredStaff = staff.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
 
   return (
     <div>
