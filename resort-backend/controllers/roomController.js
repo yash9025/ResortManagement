@@ -12,7 +12,7 @@ export const getRooms = async (req, res) => {
   }
 };
 
-// Get a single room by ID
+// Get room by ID
 export const getRoomById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -24,7 +24,7 @@ export const getRoomById = async (req, res) => {
   }
 };
 
-// Add a new room
+// Add new room
 export const addRoom = async (req, res) => {
   try {
     const { number, type, price, capacity, status, maintenance, temperature, lighting, cleanliness } = req.body;

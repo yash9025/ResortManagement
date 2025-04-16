@@ -12,7 +12,6 @@ const app = express();
 const PORT = 5000;
 
 // Middleware
-app.use(cors()); // Enable CORS for all origins (safe for dev)
 app.use(express.json()); // Parse JSON requests
 
 // API Routes
